@@ -347,6 +347,7 @@ document.getElementById("btnUseLocation").addEventListener("click", async () => 
     const latlng = await tryGeo();
     await setPickup(latlng);
   } catch (e) {
+    console.warn("Geolocation error:", e && e.code, e && e.message, e);
     // Fallback: approximate by IP via multiple providers if user denied or GPS failed
     try {
       const approx = await fetchApproxLocationFallback();
@@ -357,6 +358,8 @@ document.getElementById("btnUseLocation").addEventListener("click", async () => 
         "Location permission denied. Please allow location access (tap the lock icon ▶ Site settings ▶ Allow Location) and try again, or tap the map to set pickup." :
         "Unable to determine location. Please tap the map to set pickup.";
       alert(msg);
+      const statusEl = document.getElementById("pickupStatus");
+      if (statusEl) statusEl.textContent = msg;
     }
   } finally {
     btn.disabled = false; btn.textContent = "Use my location";
