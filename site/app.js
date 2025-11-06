@@ -296,6 +296,41 @@ async function forwardGeocode(query) {
 }
 
 // Geolocation
+async function fetchApproxLocationFallback() {
+  // Try multiple HTTPS-friendly providers with CORS
+  const providers = [
+    async () => {
+      const r = await fetch("https://ipapi.co/json/");
+      if (!r.ok) throw new Error("ipapi failed");
+      const d = await r.json();
+      if (d && d.latitude && d.longitude) return { lat: d.latitude, lng: d.longitude, src: "ipapi" };
+      throw new Error("ipapi no lat/lon");
+    },
+    async () => {
+      const r = await fetch("https://geolocation-db.com/json/");
+      if (!r.ok) throw new Error("geolocation-db failed");
+      const d = await r.json();
+      if (d && d.latitude && d.longitude && typeof d.latitude === 'number') return { lat: d.latitude, lng: d.longitude, src: "geolocation-db" };
+      throw new Error("geolocation-db no lat/lon");
+    },
+    async () => {
+      const r = await fetch("https://ipinfo.io/json");
+      if (!r.ok) throw new Error("ipinfo failed");
+      const d = await r.json();
+      if (d && d.loc) {
+        const [lat, lng] = d.loc.split(",").map(parseFloat);
+        if (!isNaN(lat) && !isNaN(lng)) return { lat, lng, src: "ipinfo" };
+      }
+      throw new Error("ipinfo no lat/lon");
+    }
+  ];
+  let lastErr = null;
+  for (const p of providers) {
+    try { return await p(); } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("Approx location failed");
+}
+
 document.getElementById("btnUseLocation").addEventListener("click", async () => {
   const btn = document.getElementById("btnUseLocation");
   btn.disabled = true; btn.textContent = "Locating…";
@@ -312,18 +347,16 @@ document.getElementById("btnUseLocation").addEventListener("click", async () => 
     const latlng = await tryGeo();
     await setPickup(latlng);
   } catch (e) {
-    // Fallback: approximate by IP if user denied or GPS failed
+    // Fallback: approximate by IP via multiple providers if user denied or GPS failed
     try {
-      const res = await fetch("https://ipapi.co/json/");
-      const data = await res.json();
-      if (data && data.latitude && data.longitude) {
-        await setPickup({ lat: data.latitude, lng: data.longitude });
-        alert("Used approximate location (IP-based). For precise pickup, allow location access.");
-      } else {
-        alert("Unable to determine location. Please click on the map to set pickup.");
-      }
+      const approx = await fetchApproxLocationFallback();
+      await setPickup({ lat: approx.lat, lng: approx.lng });
+      alert("Used approximate location (IP-based). For precise pickup, allow location access in your browser settings and tap 'Use my location' again.");
     } catch (e2) {
-      alert("Unable to determine location. Please click on the map to set pickup.");
+      const msg = (e && e.code === 1) ?
+        "Location permission denied. Please allow location access (tap the lock icon ▶ Site settings ▶ Allow Location) and try again, or tap the map to set pickup." :
+        "Unable to determine location. Please tap the map to set pickup.";
+      alert(msg);
     }
   } finally {
     btn.disabled = false; btn.textContent = "Use my location";
