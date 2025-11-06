@@ -46,12 +46,16 @@ main { padding: 20px; max-width: 1200px; margin: 0 auto; }
 @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
 
 .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); }
+.card { scroll-margin-top: calc(var(--header-h) + 8px); }
 .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-top: 12px; box-shadow: var(--shadow); }
 .panel-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
 
 .map { width: 100%; height: 380px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
 .map-actions { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
 .hint { color: var(--muted); font-size: 12px; }
+/* Status line for pickup location */
+.status { margin: 8px 0 12px; font-size: 14px; color: #0b5a3c; }
+@media (max-width: 640px) { .status { font-size: 13px; margin: 6px 0 10px; } }
 
 .form { margin-top: 12px; display: grid; gap: 12px; }
 .field-group { display: grid; gap: 8px; position: relative; }
@@ -92,6 +96,24 @@ main { padding: 20px; max-width: 1200px; margin: 0 auto; }
 .suggestions .item:last-child { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
 .suggestions .item:hover { background: #fff5f5; cursor: pointer; }
 
+/* Attention flash to draw user's eye */
+.attention { animation: card-flash 1.4s ease-out; }
+@keyframes card-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(211,47,47,0.24); }
+  50%  { box-shadow: 0 0 0 10px rgba(211,47,47,0.10); }
+  100% { box-shadow: var(--shadow); }
+}
+
+/* Driver profile */
+.driver-card { border-top: 4px solid var(--primary); margin-top: 12px; }
+.driver-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.driver-avatar { font-size: 26px; background: #fff0f0; color: var(--primary); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--border); }
+.driver-info { flex: 1; min-width: 200px; }
+.driver-name { font-weight: 600; font-size: 16px; }
+.driver-meta { color: var(--muted); font-size: 13px; }
+.driver-actions { display: flex; align-items: center; gap: 8px; }
+.support-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+
 /* Mobile-first improvements */
 @media (max-width: 600px) {
   :root { --header-h: 112px; }
@@ -109,6 +131,10 @@ main { padding: 20px; max-width: 1200px; margin: 0 auto; }
   .card { padding: 12px; border-radius: 14px; }
   .panel { padding: 10px; }
   .panel-row { gap: 12px; }
+  .driver-avatar { width: 40px; height: 40px; font-size: 24px; }
+  .driver-name { font-size: 15px; }
+  .driver-meta { font-size: 13px; }
+  .support-row { gap: 12px; }
 
   .map { height: 52vh; }
   .inline { flex-direction: column; align-items: stretch; gap: 10px; }

@@ -135,6 +135,31 @@ const FLEET = (() => {
   return base;
 })();
 
+// Fake driver profiles for demo (investor/user preview)
+const FAKE_DRIVERS = [
+  { name: "Rahul Sen", phone: "9876543210" },
+  { name: "Priya Das", phone: "9890012345" },
+  { name: "Amit Roy", phone: "9123456789" },
+  { name: "Sneha Gupta", phone: "9812345678" },
+  { name: "Arjun Kumar", phone: "9911223344" },
+];
+
+function pickFakeDriver() {
+  const i = Math.floor(Math.random() * FAKE_DRIVERS.length);
+  return FAKE_DRIVERS[i];
+}
+
+function generateVehicleReg(id) {
+  // Create a plausible WB registration number deterministically from vehicle id
+  const digits = parseInt(String(id).replace(/\D/g, "")) || Math.floor(Math.random() * 10000);
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const district = String(digits % 99).padStart(2, "0");
+  const a1 = letters[digits % 26];
+  const a2 = letters[(digits * 7) % 26];
+  const serial = String((digits * 13) % 9999).padStart(4, "0");
+  return `WB ${district}${a1}${a2} ${serial}`;
+}
+
 // Kolkata facilities for destination suggestions (loaded from facilities.json, fallback to defaults)
 let FACILITIES = [];
 const DEFAULT_FACILITIES = [
@@ -228,12 +253,25 @@ async function setPickup(latlng) {
   map.setCenter(latlng.lat, latlng.lng);
   map.addMarker(pickupMarkerId, latlng.lat, latlng.lng, "Pickup");
   const pickupEl = document.getElementById("pickup");
-  pickupEl.value = "Locating address…";
+  const statusEl = document.getElementById("pickupStatus");
+  if (pickupEl) {
+    pickupEl.value = "Locating address…";
+  } else if (statusEl) {
+    statusEl.textContent = "Locating address…";
+  }
   try {
     const addr = await reverseGeocode(latlng);
-    pickupEl.value = addr;
+    if (pickupEl) {
+      pickupEl.value = addr;
+    } else if (statusEl) {
+      statusEl.textContent = `Pickup set: ${addr}`;
+    }
   } catch (e) {
-    pickupEl.value = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+    if (pickupEl) {
+      pickupEl.value = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+    } else if (statusEl) {
+      statusEl.textContent = `Pickup set: ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+    }
   }
 }
 
@@ -446,10 +484,10 @@ destInput.addEventListener("keydown", e => {
 document.getElementById("bookingForm").addEventListener("submit", async e => {
   e.preventDefault();
   let pickup = pickupLatLng;
-  const pickupText = document.getElementById("pickup").value.trim();
+  // Pickup must be set via 'Use my location' or map tap. No manual address entry anymore.
   if (!pickup) {
-    const parsed = parseLatLng(pickupText);
-    if (parsed) pickup = parsed; else pickup = await forwardGeocode(pickupText);
+    alert("Please set pickup location (tap 'Use my location' or click on the map). ");
+    return;
   }
   const destinationText = document.getElementById("destination").value.trim();
   const phone = document.getElementById("phone").value.trim();
@@ -512,6 +550,13 @@ function renderNearbyList(items, pickup) {
   listEl.innerHTML = "";
   if (!items.length) {
     listEl.innerHTML = `<p class=\"disclaimer\">No vehicles available for selected service at the moment. Please try another service type or resubmit.</p>`;
+    // Ensure the Nearby card comes into view even when empty
+    const listCard = listEl.closest(".card");
+    if (listCard) {
+      listCard.classList.add("attention");
+      listCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(() => listCard.classList.remove("attention"), 1500);
+    }
     return;
   }
   items.forEach((item, idx) => {
@@ -536,13 +581,28 @@ function renderNearbyList(items, pickup) {
       startTrip(items[idx], pickup);
     });
   });
+
+  // Bring Nearby section to user's view and briefly highlight it
+  const listCard = listEl.closest(".card");
+  if (listCard) {
+    listCard.classList.add("attention");
+    listCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => listCard.classList.remove("attention"), 1500);
+  }
+
+  // Accessibility: focus first Book button for quick action
+  const firstBookBtn = listEl.querySelector("[data-book-idx]");
+  if (firstBookBtn) {
+    try { firstBookBtn.focus(); } catch {}
+  }
 }
 
 // Start trip => navigate to tracking and simulate movement
 function startTrip(quote, pickup) {
   selectedQuote = quote;
   location.hash = "#track";
-  setupTracking(quote, pickup);
+  // Defer setup slightly so the route toggles to #track before we populate and scroll
+  setTimeout(() => setupTracking(quote, pickup), 60);
 }
 
 function setupTracking(quote, pickup) {
@@ -551,6 +611,33 @@ function setupTracking(quote, pickup) {
   infoEl.textContent = `Vehicle ${vehicle.id} (${vehicle.type}) en route. Trip distance ~ ${tripDistance.toFixed(1)} km.`;
   document.getElementById("liveFare").textContent = estimateFare(tripDistance, vehicle);
   document.getElementById("liveVehicle").textContent = `${vehicle.id} · ${vehicle.type}`;
+
+  // Populate and show fake driver profile for the demo
+  const driver = pickFakeDriver();
+  const driverCard = document.getElementById("driverCard");
+  if (driverCard) {
+    const reg = generateVehicleReg(vehicle.id);
+    const phone = driver.phone;
+    const telHref = `tel:+91${phone}`;
+    const supportHref = `tel:+18002742764`;
+    const nameEl = document.getElementById("driverName");
+    const phoneEl = document.getElementById("driverPhone");
+    const phoneLinkEl = document.getElementById("driverPhoneLink");
+    const typeEl = document.getElementById("driverAmbulanceType");
+    const regEl = document.getElementById("driverVehicleNo");
+    const supportLinkEl = document.getElementById("supportPhoneLink");
+    if (nameEl) nameEl.textContent = driver.name;
+    if (phoneEl) phoneEl.textContent = phone;
+    if (phoneLinkEl) phoneLinkEl.href = telHref;
+    if (typeEl) typeEl.textContent = vehicle.type;
+    if (regEl) regEl.textContent = reg;
+    if (supportLinkEl) supportLinkEl.href = supportHref;
+    driverCard.hidden = false;
+    // On mobile, ensure the driver card is visible and highlighted
+    driverCard.classList.add("attention");
+    driverCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => driverCard.classList.remove("attention"), 1500);
+  }
 
   // Map setup for tracking
   trackMap = createMapRenderer("trackMap", pickup, 14);
@@ -613,6 +700,8 @@ function endTrip() {
   setTimeout(() => {
     trackMap = null;
   }, 100);
+  const driverCard = document.getElementById("driverCard");
+  if (driverCard) driverCard.hidden = true;
 }
 
 // AI Seek – Aggregated sources (DuckDuckGo IA, Wikipedia)

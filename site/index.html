@@ -43,12 +43,9 @@
               <button id="btnUseLocation" class="btn">Use my location</button>
               <span class="hint">or click on the map to set pickup</span>
             </div>
+            <div id="pickupStatus" class="status">Pickup not set. Tap "Use my location" or tap the map.</div>
             <div id="map" class="map"></div>
             <form id="bookingForm" class="form">
-              <div class="field-group">
-                <label for="pickup">Pickup address</label>
-                <input id="pickup" name="pickup" placeholder="Your address (auto-filled)" required />
-              </div>
               <div class="field-group" id="destGroup">
                 <label for="destination">Destination hospital or address</label>
                 <input id="destination" name="destination" placeholder="Start typing: Fortis, AMRI, Apollo, SSKM…" required />
@@ -102,6 +99,28 @@
             </div>
           </div>
           <button id="endTrip" class="btn">End Trip</button>
+        </div>
+
+        <!-- Driver profile (shown after booking) -->
+        <div id="driverCard" class="card driver-card" hidden>
+          <h3>Your Driver</h3>
+          <div class="driver-row">
+            <div class="driver-avatar">🚑</div>
+            <div class="driver-info">
+              <div id="driverName" class="driver-name">—</div>
+              <div class="driver-meta">
+                <span id="driverVehicleNo">—</span> · <span id="driverAmbulanceType">—</span>
+              </div>
+            </div>
+            <div class="driver-actions">
+              <a id="driverPhoneLink" class="btn primary" href="#">Call Driver</a>
+            </div>
+          </div>
+          <div class="support-row">
+            <div><strong>Driver phone:</strong> <span id="driverPhone">—</span></div>
+            <div><strong>Customer support:</strong> <a id="supportPhoneLink" href="tel:+18002742764">1800‑274‑2764</a></div>
+          </div>
+          <p class="disclaimer">Demo only: This driver profile is auto‑generated for investors and users to preview the experience.</p>
         </div>
       </section>
 
