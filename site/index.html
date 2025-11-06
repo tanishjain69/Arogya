@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arogya – Ambulance Aggregator Prototype</title>
+    <meta name="description" content="Arogya: Book BLS/ALS ambulances, mortuary vans, live tracking, and AI Seek health info." />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <!-- Modern fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="brand">
+  <img src="images/Arogya Logo.jpg" alt="Arogya Logo" class="logo" onerror="this.onerror=null; this.src='logo.svg';" />
+        <div>
+          <h1>Arogya</h1>
+          <p class="tagline">rog ya arogya?</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#home" data-route>Book Ambulance</a>
+        <a href="#ai" data-route>AI Seek</a>
+        <a href="#forum" data-route>Q&A Forum</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Home / Booking -->
+      <section id="home" class="view active">
+        <div class="hero">
+          <h2>Book an ambulance in seconds — no signup required</h2>
+          <p class="sub">Choose BLS, ALS, or schedule a mortuary van. See nearby vehicles with ETA and fare. Track in real time. Kolkata-first experience.</p>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h3>Your Location & Destination</h3>
+            <div class="map-actions">
+              <button id="btnUseLocation" class="btn">Use my location</button>
+              <span class="hint">or click on the map to set pickup</span>
+            </div>
+            <div id="map" class="map"></div>
+            <form id="bookingForm" class="form">
+              <div class="field-group">
+                <label for="pickup">Pickup address</label>
+                <input id="pickup" name="pickup" placeholder="Your address (auto-filled)" required />
+              </div>
+              <div class="field-group" id="destGroup">
+                <label for="destination">Destination hospital or address</label>
+                <input id="destination" name="destination" placeholder="Start typing: Fortis, AMRI, Apollo, SSKM…" required />
+                <div id="destSuggestions" class="suggestions" aria-label="Hospital suggestions"></div>
+              </div>
+              <div class="field-group">
+                <label for="serviceType">Service type</label>
+                <select id="serviceType" name="serviceType">
+                  <option value="BLS">BLS (Basic Life Support)</option>
+                  <option value="ALS">ALS (Advanced Life Support)</option>
+                  <option value="Any">Any (BLS/ALS) – nearest available</option>
+                  <option value="Mortuary">Mortuary Van</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="phone">Contact number</label>
+                <input id="phone" name="phone" type="tel" placeholder="10-digit mobile" required />
+              </div>
+              <div class="inline">
+                <button type="submit" class="btn primary">Get Estimates & Nearby</button>
+                <button type="reset" class="btn">Reset</button>
+              </div>
+              <p class="disclaimer">Note: This is a demo prototype. For emergencies, call your local emergency number immediately.</p>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>Nearby Ambulances</h3>
+            <div id="nearbyList" class="list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tracking -->
+      <section id="track" class="view">
+        <div class="hero">
+          <h2>Live Tracking</h2>
+          <p id="trackInfo" class="sub">Tracking your ambulance…</p>
+        </div>
+        <div id="trackMap" class="map"></div>
+        <div class="panel">
+          <div class="panel-row">
+            <div>
+              <strong>ETA:</strong> <span id="liveEta">—</span>
+            </div>
+            <div>
+              <strong>Fare Estimate:</strong> ₹ <span id="liveFare">—</span>
+            </div>
+            <div>
+              <strong>Vehicle:</strong> <span id="liveVehicle">—</span>
+            </div>
+          </div>
+          <button id="endTrip" class="btn">End Trip</button>
+        </div>
+      </section>
+
+      <!-- AI Seek -->
+      <section id="ai" class="view">
+        <div class="hero ai-hero">
+          <div class="badge">Launching soon</div>
+          <h2>AI Seek: Health assistant</h2>
+          <p class="sub">Advanced AI answers with medical disclaimers, symptom guidance, and care pathways — rolling out soon.</p>
+        </div>
+        <form id="aiForm" class="form" hidden>
+          <div class="field-group">
+            <label for="aiQuery">Your question</label>
+            <textarea id="aiQuery" rows="3" placeholder="e.g., What are symptoms of a heart attack?" required></textarea>
+          </div>
+          <div class="inline">
+            <button type="submit" class="btn primary">Search</button>
+            <button type="reset" class="btn">Clear</button>
+          </div>
+          <p class="disclaimer">AI Seek provides general information from public sources (Wikipedia, DuckDuckGo IA). It is not a substitute for professional medical advice. In emergencies, call your local emergency number.</p>
+        </form>
+        <div id="aiResults" class="card ai-card" hidden>
+          <div class="ai-header">
+            <h3>Results</h3>
+            <div class="ai-sources" id="aiSources"></div>
+          </div>
+          <div id="aiContent"></div>
+        </div>
+        <div class="ai-grid">
+          <div class="card">
+            <div class="forum-icon">✨</div>
+            <h3>What’s coming</h3>
+            <ul class="roadmap">
+              <li>Advanced AI answers (LLM integration)</li>
+              <li>Symptom checker & next‑step guidance</li>
+              <li>Care pathways and triage tips</li>
+              <li>Regional language support</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="forum-icon">📧</div>
+            <h3>Get early access</h3>
+            <p>Be the first to try AI Seek when we launch.</p>
+            <div class="cta">
+              <input id="notifyAiEmail" type="email" placeholder="Your email address" />
+              <button id="notifyAiBtn" class="btn primary">Notify me</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Forum (Coming soon) -->
+      <section id="forum" class="view">
+        <div class="hero forum-hero">
+          <div class="badge">Launching soon</div>
+          <h2>24/7 Healthcare Q&A Forum</h2>
+          <p class="sub">Ask doctors, get free answers or book paid consults — community moderated and quality checked.</p>
+        </div>
+        <div class="forum-grid">
+          <div class="card forum-card">
+            <div class="forum-icon">💬</div>
+            <h3>What’s coming</h3>
+            <ul class="roadmap">
+              <li>Ask questions with images/reports</li>
+              <li>Verified doctors respond quickly</li>
+              <li>Follow-up threads & bookmarks</li>
+              <li>Quality checks & moderation</li>
+            </ul>
+          </div>
+          <div class="card forum-card">
+            <div class="forum-icon">📣</div>
+            <h3>Get notified</h3>
+            <p>Be the first to know when the forum goes live.</p>
+            <div class="cta">
+              <input id="notifyEmail" type="email" placeholder="Your email address" />
+              <button id="notifyBtn" class="btn primary">Notify me</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>
+        <strong>Arogya</strong> · Emergency care aggregator · Prototype v0.1
+      </div>
+      <div class="links">
+        <a href="#home" data-route>Book</a>
+        <a href="#ai" data-route>AI Seek</a>
+        <a href="#forum" data-route>Forum</a>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
